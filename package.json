@@ -6,20 +6,13 @@
     "vitest": "^4.0.6"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.0-beta.39",
-    "@ai-sdk/provider": "^3.0.0-beta.15",
-    "ai": "^6.0.0-beta.93",
+    "@ai-sdk/google": "^2.0.27",
+    "ai": "^5.0.87",
     "chrono-node": "^2.9.0",
-    "cypress-schema-validator": "^1.0.1",
     "dayjs": "^1.11.19",
-    "fastest-levenshtein": "^1.0.16",
-    "linear-sum-assignment": "^1.0.9",
     "zod": "^4.1.12"
   },
   "scripts": {
     "eval:dev": "evalite watch"
-  },
-  "patchedDependencies": {
-    "evalite@0.18.0": "patches/evalite@0.18.0.patch"
   }
 }
