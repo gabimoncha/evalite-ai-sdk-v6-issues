@@ -1,0 +1,34 @@
+import { generateObject } from "ai";
+import { evalite } from "evalite";
+import {model, providerOptions, schema, systemPrompt, testData} from "./options";
+
+evalite.skip("generateObject", {
+	data: testData,
+	task: async (input) => {
+		const result = await generateObject({
+			model: model,
+			providerOptions: providerOptions,
+			system: systemPrompt,
+			schema: schema,
+			prompt: input,
+		});
+
+		return result;
+	},
+	columns: async ({ expected, output }) => {
+		return [
+			{
+				label: "Reasoning",
+				value: output.reasoning,
+			},
+			{
+				label: "Output",
+				value: output.object.actions,
+			},
+			{
+				label: "Expected",
+				value: expected,
+			},
+		];
+	},
+});

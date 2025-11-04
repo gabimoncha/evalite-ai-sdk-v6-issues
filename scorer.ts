@@ -1,25 +1,16 @@
-import {google} from "@ai-sdk/google";
 import { generateObject } from "ai";
 import { createScorer } from "evalite";
-import {traceAISDKModelV3} from "evalite/ai-sdk";
 import { z } from "zod";
-
-const model = google("gemini-2.5-flash");
-// const model = traceAISDKModelV3(google("gemini-2.5-flash"));
-const providerOptions = {
-  google: {
-    thinkingConfig: { thinkingBudget: 8192, includeThoughts: true }
-  }
-};
+import { model, providerOptions } from "./evals/options";
 
 export const PossibleAutoeval =
-	createScorer<string, { output: object }, { actions: object[] }>({
+	createScorer<string, object, { actions: object[] }>({
 		name: "Possible autoeval",
 		description:
 			"Test whether an output is a possible solution to the challenge posed in the input.",
 		scorer: async (opt) => {
 			const expected = JSON.stringify(opt.expected?.actions || []);
-			const output = JSON.stringify(opt.output.output);
+			const output = JSON.stringify(opt.output);
 			return checkInstructions({
 				prompt: possible_prompt(opt.input, expected, output),
 			});
@@ -28,7 +19,7 @@ export const PossibleAutoeval =
 
 export const PossibleCustom = createScorer<
 	string,
-	{ output: object },
+	object,
 	{ actions: object[] }
 >({
 	name: "Possible custom",
@@ -36,7 +27,7 @@ export const PossibleCustom = createScorer<
 		"Test whether an output is a possible solution to the challenge posed in the input.",
 	scorer: async (opt) => {
 		const expected = JSON.stringify(opt.expected?.actions || []);
-		const output = JSON.stringify(opt.output.output);
+		const output = JSON.stringify(opt.output);
 		return checkInstructions({
 			prompt: possible_custom_prompt(opt.input, expected, output),
 		});
