@@ -1,6 +1,8 @@
 import { google } from "@ai-sdk/google";
-import { type LanguageModel, tool } from "ai";
-import * as chrono from "chrono-node/en";
+import { groq } from "@ai-sdk/groq";
+import { openrouter } from "@openrouter/ai-sdk-provider";
+import { type LanguageModel, type ToolSet, tool } from "ai";
+import { en } from "chrono-node";
 import dayjs from "dayjs";
 import z from "zod";
 
@@ -17,14 +19,20 @@ Your goal is to create the user's schedule. Follow the JSON schema provided.
 export const systemPromptWithTool = `
 You are a helpful assistant that can help with tasks and events.
 
-You have access to resolveDate tool to convert natural language date expressions into ISO date strings.
-
 Today is ${dayjs().format("YYYY-MM-DD")}
 
-Your goal is to create the user's schedule. Follow the JSON schema provided.
+You have access to resolveDate tool to convert natural language date expressions from the input into ISO date strings. Besides single dates, you can also pass ranges of dates to the tool (e.g. "Wednesday to Monday").
+
+Your task is to first get the ISO date string and then to create the user's schedule.
+Follow the JSON schema provided.
 `;
 
-export const model: LanguageModel = google("gemini-2.5-flash-lite");
+// export const model: LanguageModel = openrouter('openai/gpt-oss-120b', {
+//   reasoning: {
+//     effort: 'medium',
+//   },
+// });
+export const model: LanguageModel = groq("openai/gpt-oss-120b");
 //export const model = traceAISDKModel(google('gemini-2.5-flash-lite'));
 export const providerOptions = {
 	google: {
@@ -75,26 +83,31 @@ export const outputSchema = z.object({
 // Alias for backward compatibility
 export const schema = outputSchema;
 
-export const resolveDate = tool({
-	name: "resolveDate",
-	description:
-		"Convert natural language date expressions into ISO date strings.",
-	inputSchema: z.object({
-		input: z
-			.string()
-			.describe('Natural language date expression, e.g. "Tuesday next week"'),
+export const tools = {
+	resolveDate: tool({
+		name: "resolveDate",
+		description:
+			"Convert natural language date expressions into ISO date strings.",
+		inputSchema: z.object({
+			input: z
+				.string()
+				.describe('Natural language date expression, e.g. "Tuesday next week"'),
+		}),
+		execute: async ({ input }) => {
+			const reference = dayjs().toDate();
+			const parsed = en.parse(input, reference, {
+				forwardDate: true,
+			});
+
+			if (!parsed || parsed.length === 0) return null;
+
+			return parsed.map((p) => ({
+				start: dayjs(p.start.date()).format("YYYY-MM-DD"),
+				end: p.end ? dayjs(p.end.date()).format("YYYY-MM-DD") : null,
+			}));
+		},
 	}),
-	execute: async ({ input }) => {
-		const reference = dayjs().toDate();
-		const parsed = chrono.parseDate(input, reference, {
-			forwardDate: true,
-		});
-
-		if (!parsed) return null;
-
-		return dayjs(parsed).format("YYYY-MM-DD");
-	},
-});
+} satisfies ToolSet;
 
 const friday = dayjs().day(5).format("YYYY-MM-DD");
 const monday = dayjs().add(1, "week").day(1).format("YYYY-MM-DD");
@@ -145,8 +158,9 @@ export const testData = [
 		},
 	},
 	{
+    only: true,
 		// The input
-		input: "Monday to Tuesday I need to do my homework for 2 hours each day",
+		input: "Monday to Tuesday I need to do my homework for 2 hours each day and this weekend i want to go for a run with my friends on saturday and on sunday I want to go to the gym",
 
 		// The expected answer
 		expected: {

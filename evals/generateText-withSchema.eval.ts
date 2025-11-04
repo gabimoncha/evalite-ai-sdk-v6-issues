@@ -1,15 +1,15 @@
-import { generateText, Output } from "ai";
+import { generateText, Output, stepCountIs } from "ai";
 import { evalite } from "evalite";
 import {
 	model,
 	providerOptions,
-	resolveDate,
 	schema,
 	systemPromptWithTool,
 	testData,
+	tools,
 } from "./options";
 
-evalite.skip("generateText with schema", {
+evalite.skip("generateText with schema / json mode cannot be combined with tool/function calling", {
 	data: testData,
 	task: async (input) => {
 		const result = await generateText({
@@ -17,13 +17,12 @@ evalite.skip("generateText with schema", {
 			providerOptions,
 			prompt: input,
 			system: systemPromptWithTool,
-			tools: {
-				resolveDate,
-			},
+			tools,
 			toolChoice: "required",
 			experimental_output: Output.object({
 				schema,
 			}),
+      stopWhen: stepCountIs(20)
 		});
 
 		return result;

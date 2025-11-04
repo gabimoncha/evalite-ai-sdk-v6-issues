@@ -7,6 +7,8 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.27",
+    "@ai-sdk/groq": "^2.0.28",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
     "ai": "^5.0.87",
     "chrono-node": "^2.9.0",
     "dayjs": "^1.11.19",
