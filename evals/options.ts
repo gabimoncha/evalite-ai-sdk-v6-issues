@@ -1,7 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import { type LanguageModel, type ToolSet, tool } from "ai";
+import { gateway, type LanguageModel, type ToolSet, tool } from "ai";
 import { en } from "chrono-node";
 import dayjs from "dayjs";
 import z from "zod";
@@ -24,7 +24,7 @@ Today is ${dayjs().format("YYYY-MM-DD")}
 You have access to resolveDate tool to convert natural language date expressions from the input into ISO date strings. Besides single dates, you can also pass ranges of dates to the tool (e.g. "Wednesday to Monday").
 
 Your task is to first get the ISO date string and then to create the user's schedule.
-Follow the JSON schema provided.
+When returning the schedule, follow the output schema provided.
 `;
 
 // export const model: LanguageModel = openrouter('openai/gpt-oss-120b', {
@@ -32,17 +32,35 @@ Follow the JSON schema provided.
 //     effort: 'medium',
 //   },
 // });
-export const model: LanguageModel = groq("openai/gpt-oss-120b");
+// export const model: LanguageModel = groq("openai/gpt-oss-120b");
+export const model: LanguageModel = gateway("openai/gpt-oss-120b");
 //export const model = traceAISDKModel(google('gemini-2.5-flash-lite'));
 export const providerOptions = {
 	google: {
 		thinkingConfig: { thinkingBudget: 8192, includeThoughts: true },
 	},
+  gateway: {
+		order: ['baseten', 'groq', 'fireworks', 'bedrock', 'parasail'],
+		only: ['baseten', 'groq', 'fireworks', 'bedrock', 'parasail'],
+	},
+	baseten: {
+		reasoningEffort: 'medium',
+	},
+	groq: {
+    reasoningEffort: 'medium',
+	},
+	fireworks: {
+    reasoningEffort: 'medium',
+	},
+  bedrock: {
+    reasoningEffort: 'medium',
+  },
+	parasail: {
+		reasoningEffort: 'medium',
+	},
 };
 
-export const outputSchema = z.object({
-	actions: z.array(
-		z.object({
+export const actionSchema = z.object({
 			name: z.string().describe("Concise action name"),
 			type: z
 				.enum(["task", "travel", "meeting", "event", "habit", "goal"])
@@ -76,8 +94,10 @@ export const outputSchema = z.object({
 				.min(10)
 				.nullable()
 				.describe("Duration in minutes or null if under 10 minutes"),
-		}),
-	),
+});
+
+export const outputSchema = z.object({
+	actions: z.array(actionSchema),
 });
 
 // Alias for backward compatibility
@@ -158,9 +178,10 @@ export const testData = [
 		},
 	},
 	{
-    only: true,
+		only: true,
 		// The input
-		input: "Monday to Tuesday I need to do my homework for 2 hours each day and this weekend i want to go for a run with my friends on saturday and on sunday I want to go to the gym",
+		input:
+			"Monday to Tuesday I need to do my homework for 2 hours each day and this weekend i want to go for a run with my friends on saturday and on sunday I want to go to the gym",
 
 		// The expected answer
 		expected: {

@@ -13,7 +13,7 @@ const hasAnswer: StopCondition<typeof tools> = ({ steps }) => {
 	return steps.some((step) => step.content[0]?.type === "text");
 };
 
-evalite("generateText", {
+evalite.skip("generateText", {
 	data: testData,
 	task: async (input) => {
 		const result = await generateText({

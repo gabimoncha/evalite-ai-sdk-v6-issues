@@ -1,6 +1,6 @@
 import { generateObject } from "ai";
 import { evalite } from "evalite";
-import {model, providerOptions, schema, systemPrompt, testData} from "./options";
+import {actionSchema, model, providerOptions, systemPrompt, testData} from "./options";
 
 evalite.skip("generateObject", {
 	data: testData,
@@ -9,7 +9,8 @@ evalite.skip("generateObject", {
 			model: model,
 			providerOptions: providerOptions,
 			system: systemPrompt,
-			schema: schema,
+      output: 'array',
+      schema: actionSchema,
 			prompt: input,
 		});
 
@@ -23,7 +24,7 @@ evalite.skip("generateObject", {
 			},
 			{
 				label: "Output",
-				value: output.object.actions,
+				value: output.object,
 			},
 			{
 				label: "Expected",

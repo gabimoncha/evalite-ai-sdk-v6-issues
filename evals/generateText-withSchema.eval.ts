@@ -1,15 +1,15 @@
 import { generateText, Output, stepCountIs } from "ai";
 import { evalite } from "evalite";
 import {
+  actionSchema,
 	model,
 	providerOptions,
-	schema,
 	systemPromptWithTool,
 	testData,
 	tools,
 } from "./options";
 
-evalite.skip("generateText with schema / json mode cannot be combined with tool/function calling", {
+evalite.skip("generateText with schema", {
 	data: testData,
 	task: async (input) => {
 		const result = await generateText({
@@ -19,10 +19,10 @@ evalite.skip("generateText with schema / json mode cannot be combined with tool/
 			system: systemPromptWithTool,
 			tools,
 			toolChoice: "required",
-			experimental_output: Output.object({
-				schema,
+			output: Output.array({
+				element: actionSchema,
 			}),
-      stopWhen: stepCountIs(20)
+      stopWhen: stepCountIs(5)
 		});
 
 		return result;
@@ -30,12 +30,28 @@ evalite.skip("generateText with schema / json mode cannot be combined with tool/
 	columns: async ({ expected, output }) => {
 		return [
 			{
-				label: "Output",
-				value: output.experimental_output.actions,
+				label: "Reasoning",
+				value: output.reasoning,
 			},
 			{
-				label: "Expected",
-				value: expected?.actions,
+				label: "tool calls",
+				value: output.toolCalls,
+			},
+			{
+				label: "tool results",
+				value: output.toolResults,
+			},
+			{
+				label: "output text",
+				value: output.text,
+			},
+			{
+				label: "output steps",
+				value: output.steps,
+			},
+			{
+				label: "output",
+				value: output,
 			},
 		];
 	},

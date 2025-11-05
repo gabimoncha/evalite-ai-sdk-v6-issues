@@ -1,7 +1,7 @@
 import {
-	Experimental_Agent as Agent,
 	Output,
 	stepCountIs,
+  ToolLoopAgent,
 } from "ai";
 import { evalite } from "evalite";
 // import { PossibleAutoeval, PossibleCustom } from "../scorer";
@@ -14,22 +14,21 @@ import {
 	tools,
 } from "./options";
 
-const agent = new Agent({
+const agent = new ToolLoopAgent({
 	model,
-	system: systemPromptWithTool,
+  providerOptions,
+	instructions: systemPromptWithTool,
 	tools,
 	toolChoice: "required",
-	experimental_output: Output.object({
+	output: Output.object({
 		schema,
 	}),
-	stopWhen: stepCountIs(20),
 });
 
-evalite.skip("agent / json mode cannot be combined with tool/function calling", {
+evalite.skip("agent", {
 	data: testData,
 	task: async (input) => {
 		const result = await agent.generate({
-			providerOptions,
 			prompt: input,
 		});
 
@@ -42,12 +41,24 @@ evalite.skip("agent / json mode cannot be combined with tool/function calling", 
 				value: output.reasoning,
 			},
 			{
-				label: "Output",
-				value: output,
+				label: "tool calls",
+				value: output.toolCalls,
 			},
 			{
-				label: "Expected",
-				value: expected,
+				label: "tool results",
+				value: output.toolResults,
+			},
+			{
+				label: "output text",
+				value: output.text,
+			},
+			{
+				label: "output steps",
+				value: output.steps,
+			},
+			{
+				label: "output",
+				value: output,
 			},
 		];
 	},
