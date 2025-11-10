@@ -1,8 +1,8 @@
-import { gateway, generateObject, type LanguageModel } from 'ai';
+import { generateObject, type LanguageModel } from 'ai';
 import { createScorer } from 'evalite';
 import { z } from 'zod';
 
-export const FactualityAutoeval = (model: LanguageModel = gateway('xai/grok-4-fast-reasoning')) =>
+export const FactualityAutoeval = (model: LanguageModel) =>
 	createScorer<string, any>({
 		name: 'Factuality',
 		description: 'Test whether an output is factual, compared to an original (`expected`) value.',

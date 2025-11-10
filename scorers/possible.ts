@@ -1,8 +1,8 @@
-import { gateway, generateObject, type LanguageModel } from 'ai';
+import { generateObject, type LanguageModel } from 'ai';
 import { createScorer } from 'evalite';
 import { z } from 'zod';
 
-export const PossibleAutoeval = (model: LanguageModel = gateway('xai/grok-4-fast-reasoning')) =>
+export const PossibleAutoeval = (model: LanguageModel) =>
 	createScorer<string, any>({
 		name: 'Possible autoeval',
 		description:
